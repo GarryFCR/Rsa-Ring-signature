@@ -1,4 +1,4 @@
-// Encode a byte array into a base-58 encoded string
+// Encode a bytes as an array into a base-58 encoded string
 
 pub fn base_58(buf: &mut [u8]) -> String {
     let table = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -31,4 +31,36 @@ fn as_u32_be(array: &mut [u8]) -> u32 {
         }
     }
     return num;
+}
+
+// String to bytes array
+
+pub fn base_58_decode(s: String) -> Vec<u8> {
+    let table = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    let base_table: Vec<char> = table.chars().collect();
+    let s_array: Vec<char> = s.chars().collect();
+
+    let mut x: u32 = 0;
+    let mut index: usize = 0;
+
+    for i in s_array.iter() {
+        println!("{}", i);
+        for j in 0..base_table.len() {
+            if i.eq(&base_table[j]) {
+                index = j;
+                break;
+            }
+        }
+        x = x * 58;
+        x = x + (index as u32);
+    }
+
+    println!("{}", x);
+    let mut numbers: Vec<u8> = vec![];
+    while x > 0 {
+        numbers.push((x & 15) as u8);
+        x = x >> 8;
+    }
+    numbers.reverse();
+    return numbers;
 }
