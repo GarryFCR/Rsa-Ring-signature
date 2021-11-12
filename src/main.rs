@@ -3,11 +3,11 @@ extern crate rand;
 extern crate rsa;
 mod rsa_ring;
 
-use std::str;
+//use std::str;
 
 //mod rsa_ring;
-use rand::rngs::OsRng;
-use rsa::{BigUint, PaddingScheme, PublicKey, RsaPrivateKey, RsaPublicKey};
+//use rand::rngs::OsRng;
+use rsa::RsaPublicKey;
 
 fn main() {
     /*
@@ -54,4 +54,9 @@ fn main() {
     let r = rsa_ring::Rsasign::init(pub_list, e);
     r.g();
     println!("\n{:?}\n", temp);
+    let hello = String::from("Hello, world!");
+    rsa_ring::hash(hello);
+
+    let random_list = rsa_ring::generate_rand(1);
+    println!("{:?}", random_list);
 }
