@@ -57,7 +57,11 @@ fn main() {
     let r = rsa_ring::Rsasign::init(pub_list, e);
 
     //g()
-    r.g();
+    let xy = BigUint::from_bytes_be(b"A");
+    let G = r.g(xy);
+    println!("\n{:?}", G);
+
+    //r.g();
     println!("\n{:?}\n", temp);
     let hello = String::from("Hello, world!");
 
