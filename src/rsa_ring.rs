@@ -20,10 +20,18 @@ pub struct Rsasign {
 
 impl Rsasign {
     //trapdoor function
-    pub fn g(&self /*, x: BigUint*/) {
+    pub fn g(&self , x: BigUint) -> BigUint{
         let pub_key = RsaPublicKey::from(self.signer.clone());
         let n = pub_key.n();
+        let e = pub_key.e();
         println!("N:::::{:?}", n);
+
+        let q= x.clone()/n;
+        let r = x%n;
+        let fr = r.modpow(e, n);
+        let gX = q*n + fr;
+        return gX;
+
     }
 
     //initialising the struct tha stores the members public keys and the signers private key
