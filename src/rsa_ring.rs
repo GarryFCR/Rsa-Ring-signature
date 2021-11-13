@@ -34,15 +34,15 @@ impl Rsasign {
         }
     }
 
-    /*pub fn sign(&self, m: String) {
+    pub fn sign(&self, m: String) {
         let key = hash(m);
         let glue = generate_rand(1)[0];
 
         let mut xi_list: Vec<BigUint> = vec![];
         let mut yi_list: Vec<BigUint> = vec![];
 
-        let index : u8 = 0;
-        let pos : u8 = 0;
+        let index: u8 = 0;
+        let pos: u8 = 0;
         for i in self.set.iter() {
             if *i != RsaPublicKey::from(self.signer.clone()) {
                 let x = generate_rand(1);
@@ -50,22 +50,18 @@ impl Rsasign {
                 let y = self.g();
                 yi_list.push(y);
             } else {
-                pos =index;
+                pos = index;
             }
-            index+=1;
+            index += 1;
         }
 
-        let mut c : BigUint;
+        let mut c: BigUint;
         let xor = glue.clone();
-        for j in 0..pos{
-           xor = xor.Bit_Xor(yi_list[j].clone());
-            c = encrypt(key, m)
+        for j in 0..pos {
+            xor ^= yi_list[j as usize].clone();
+            c = encrypt(key, xor.to_str_radix(16));
         }
-
-
-
-
-    }*/
+    }
 }
 //Generates a list of rsa key pairs
 pub fn generate_keys(bit: usize, no: u8) -> Vec<RsaPrivateKey> {
