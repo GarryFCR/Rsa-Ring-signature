@@ -19,21 +19,6 @@ pub struct Rsasign {
 }
 
 impl Rsasign {
-    //trapdoor function
-    pub fn g(&self , x: BigUint) -> BigUint{
-        let pub_key = RsaPublicKey::from(self.signer.clone());
-        let n = pub_key.n();
-        let e = pub_key.e();
-        println!("N:::::{:?}", n);
-
-        let q= x.clone()/n;
-        let r = x%n;
-        let fr = r.modpow(e, n);
-        let gX = q*n + fr;
-        return gX;
-
-    }
-
     //initialising the struct tha stores the members public keys and the signers private key
     pub fn init(list: Vec<RsaPublicKey>, e: RsaPrivateKey) -> Rsasign {
         Rsasign {
@@ -42,20 +27,22 @@ impl Rsasign {
         }
     }
 
-    pub fn sign(&self, m: String) {
+    pub fn sign(&self, m: String) -> Vec<BigUint> {
+        //Choose a key
         let key = hash(m);
-        let glue = generate_rand(1)[0];
+        //Pick a random glue value
+        let glue = generate_rand(1)[0].clone();
 
+        //Pick random xi ’s and calculate yi's
         let mut xi_list: Vec<BigUint> = vec![];
         let mut yi_list: Vec<BigUint> = vec![];
-
-        let index: u8 = 0;
-        let pos: u8 = 0;
+        let mut index: u8 = 0;
+        let mut pos: u8 = 0;
         for i in self.set.iter() {
             if *i != RsaPublicKey::from(self.signer.clone()) {
                 let x = generate_rand(1);
                 xi_list.push(x[0].clone());
-                let y = self.g();
+                let y = g(x[0].clone(), i.clone());
                 yi_list.push(y);
             } else {
                 pos = index;
@@ -63,13 +50,48 @@ impl Rsasign {
             index += 1;
         }
 
-        let mut c: BigUint;
-        let xor = glue.clone();
+        //Solve C_k,v (y1,y2 , . . . , yr)
+        let mut c = BigUint::from_bytes_be(b"");
+        let mut xor = glue.clone();
         for j in 0..pos {
             xor ^= yi_list[j as usize].clone();
-            c = encrypt(key, xor.to_str_radix(16));
+            c = encrypt(key.clone(), xor.to_str_radix(16));
         }
+
+        let mut v = glue.clone();
+        for j in ((pos + 1)..index + 1).rev() {
+            v = decrypt(key.clone(), v);
+            v = v ^ yi_list[j as usize].clone();
+        }
+
+        //Solve C_k,v (y1,y2 , . . . , yr) = v for ys
+        let mut y_s = decrypt(key.clone(), v);
+        y_s = y_s ^ c;
+        //g^(-1)
+        let pub_key = RsaPublicKey::from(self.signer.clone());
+        let d = self.signer.d();
+        let n = pub_key.n();
+        // let f_r = y_s.clone()%n;
+        let q = y_s.clone() / n;
+        let r = y_s;
+        r.modpow(d, n);
+
+        let x_s = q * n + r;
+        xi_list[pos as usize] = x_s;
+        return xi_list;
     }
+}
+
+//trapdoor function
+pub fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
+    //let pub_key = RsaPublicKey::from(self.signer.clone());
+    let n = pub_key.n();
+    let e = pub_key.e();
+    let q = x.clone() / n;
+    let r = x % n;
+    let fr = r.modpow(e, n);
+    let gx = q * n + fr;
+    return gx;
 }
 //Generates a list of rsa key pairs
 pub fn generate_keys(bit: usize, no: u8) -> Vec<RsaPrivateKey> {
