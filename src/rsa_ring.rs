@@ -6,7 +6,10 @@ extern crate rand;
 extern crate rsa;
 extern crate sha2;
 
+use std::vec;
+
 use aes::Aes256;
+use aes::cipher::generic_array::typenum::Len;
 use block_modes::block_padding::Pkcs7;
 use block_modes::{BlockMode, Cbc};
 use hex_literal::hex;
@@ -157,4 +160,26 @@ pub fn decrypt(key: BigUint, m: BigUint) -> BigUint {
     let num = BigUint::from_radix_be(decrypted_ciphertext, 256).unwrap();
     println!("Decipher{:?}", num);
     return num;
+}
+
+pub fn verify(pub_key_list :Vec<RsaPublicKey>, xi_list: Vec<BigUint>, glue: BigUint, m:String) -> bool {
+
+    let mut yi_list = vec![];
+    for i in 0..xi_list.len() {
+        yi_list.push(g(xi_list[i].clone(), pub_key_list[i].clone() ));
+    }
+    let key = hash(m);
+    let mut c = BigUint::from_bytes_be(b"");
+        let mut xor = glue.clone();
+        for j in 0..xi_list.len() {
+            xor ^= yi_list[j as usize].clone();
+            c = encrypt(key.clone(), xor.to_str_radix(16));
+        }
+
+    if c == glue {
+        return true;
+    }
+
+    return false;
+    
 }
