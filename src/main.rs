@@ -6,45 +6,44 @@ mod rsa_ring;
 use rsa::{BigUint, RsaPublicKey};
 
 fn main() {
-    //key generate
-    let list = rsa_ring::generate_keys(512, 2);
-
-    let e = list[0].clone();
-    let temp = list[0].clone();
-
+    //key generation
+    let list = rsa_ring::generate_keys(512, 5);
+    //init
+    let e = list[0].clone(); //signer
     let mut pub_list: Vec<RsaPublicKey> = vec![];
-
     for i in list.iter() {
         pub_list.push(RsaPublicKey::from(i));
     }
-
-    //init
     let r = rsa_ring::Rsasign::init(pub_list, e);
 
-    //g()
-    //let xy = BigUint::from_bytes_be(b"A");
-    //println!("\n{:?}", G);
-
-    //r.g();
-    println!("\n{:?}\n", temp);
+    //sign
     let hello = String::from("Hello, world!");
+    let (xi_list, glue) = r.sign(hello);
+    println!("{:?}", xi_list);
+    println!("{:?}", glue);
 
-    //hash
-    rsa_ring::hash(hello);
+    /*
+        //g()
+        //let xy = BigUint::from_bytes_be(b"A");
+        //println!("\n{:?}", G);
+        let temp = list[0].clone();
+        //r.g();
+        println!("\n{:?}\n", temp);
+        let hello = String::from("Hello, world!");
 
+        //hash
+        rsa_ring::hash(hello);
+    */
+    /*
     //encrypt
-    let random_list = rsa_ring::generate_rand(1);
-    println!("{:?}", random_list);
-
-    let key = rsa_ring::generate_rand(1);
-    println!("{:?}", key);
+    let key = rsa_ring::hash(String::from("Helld"));
     let text = String::from("Hello world");
-    let m = rsa_ring::encrypt(key[0].clone(), text);
+    let m = rsa_ring::encrypt(key.clone(), text);
 
     //decrypt
-    rsa_ring::decrypt(key[0].clone(), m);
+    let de = rsa_ring::decrypt(key.clone(), m);
 
     let byte = String::from("Hello world");
 
-    println!("{:?}", BigUint::from_bytes_be(byte.as_bytes()));
+    println!("{:?} {:?}", de, BigUint::from_bytes_be(&byte.into_bytes()));*/
 }

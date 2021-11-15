@@ -5,11 +5,12 @@ extern crate hex_literal;
 extern crate rand;
 extern crate rsa;
 extern crate sha2;
+extern crate sp_core;
 
+use sp_core::hashing::blake2_128;
 use std::vec;
 
-use aes::Aes256;
-use aes::cipher::generic_array::typenum::Len;
+use aes::Aes128;
 use block_modes::block_padding::Pkcs7;
 use block_modes::{BlockMode, Cbc};
 use hex_literal::hex;
@@ -30,11 +31,12 @@ impl Rsasign {
         }
     }
 
-    pub fn sign(&self, m: String) -> Vec<BigUint> {
+    pub fn sign(&self, m: String) -> (Vec<BigUint>, BigUint) {
         //Choose a key
         let key = hash(m);
         //Pick a random glue value
-        let glue = generate_rand(1)[0].clone();
+        let temp = BigUint::from(rand::random::<u128>()).to_str_radix(16);
+        let glue = hash(temp);
 
         //Pick random xi ’s and calculate yi's
         let mut xi_list: Vec<BigUint> = vec![];
@@ -81,12 +83,12 @@ impl Rsasign {
 
         let x_s = q * n + r;
         xi_list[pos as usize] = x_s;
-        return xi_list;
+        return (xi_list, glue);
     }
 }
 
 //trapdoor function
-pub fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
+fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
     //let pub_key = RsaPublicKey::from(self.signer.clone());
     let n = pub_key.n();
     let e = pub_key.e();
@@ -111,12 +113,13 @@ pub fn generate_keys(bit: usize, no: u8) -> Vec<RsaPrivateKey> {
 }
 
 pub fn hash(m: String) -> BigUint {
-    let mut hasher = Sha256::new();
+    /* let mut hasher = Sha256::new();
     hasher.update(m);
     let result = hasher.finalize();
 
-    let num = BigUint::from_radix_be(&result, 256).unwrap();
-    return num;
+    let num = BigUint::from_radix_be(&result, 256).unwrap();*/
+    let num = blake2_128(&m.into_bytes());
+    return BigUint::from_bytes_be(&num);
 }
 
 pub fn generate_rand(n: u8) -> Vec<BigUint> {
@@ -131,10 +134,12 @@ pub fn generate_rand(n: u8) -> Vec<BigUint> {
 }
 
 pub fn encrypt(key: BigUint, m: String) -> BigUint {
-    type Aes256Cbc = Cbc<Aes256, Pkcs7>;
-    let key_new = key.to_str_radix(16);
+    type Aes128Cbc = Cbc<Aes128, Pkcs7>;
+    let key_new = key.to_bytes_be();
+    //let temp = key.to_bytes_be();
     let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    let cipher = Aes256Cbc::new_from_slices(&key_new.into_bytes(), &iv).unwrap();
+    //println!("{:?}\n{:?}", temp.len(), iv.len());
+    let cipher = Aes128Cbc::new_from_slices(&key_new, &iv).unwrap();
 
     // buffer must have enough space for message+padding
     let mut buffer = [0u8; 32];
@@ -150,36 +155,42 @@ pub fn encrypt(key: BigUint, m: String) -> BigUint {
 }
 
 pub fn decrypt(key: BigUint, m: BigUint) -> BigUint {
-    type Aes256Cbc = Cbc<Aes256, Pkcs7>;
-    let key_new = key.to_str_radix(16);
+    type Aes128Cbc = Cbc<Aes128, Pkcs7>;
+    let key_new = key.to_bytes_be();
+
     let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    let cipher = Aes256Cbc::new_from_slices(&key_new.into_bytes(), &iv).unwrap();
+    let cipher = Aes128Cbc::new_from_slices(&key_new, &iv).unwrap();
 
     let mut buf = m.to_bytes_be();
+    println!("{:?}\n{:?}", key, m);
+
     let decrypted_ciphertext = cipher.decrypt(&mut buf).unwrap();
     let num = BigUint::from_radix_be(decrypted_ciphertext, 256).unwrap();
     println!("Decipher{:?}", num);
     return num;
 }
 
-pub fn verify(pub_key_list :Vec<RsaPublicKey>, xi_list: Vec<BigUint>, glue: BigUint, m:String) -> bool {
-
+pub fn verify(
+    pub_key_list: Vec<RsaPublicKey>,
+    xi_list: Vec<BigUint>,
+    glue: BigUint,
+    m: String,
+) -> bool {
     let mut yi_list = vec![];
     for i in 0..xi_list.len() {
-        yi_list.push(g(xi_list[i].clone(), pub_key_list[i].clone() ));
+        yi_list.push(g(xi_list[i].clone(), pub_key_list[i].clone()));
     }
     let key = hash(m);
     let mut c = BigUint::from_bytes_be(b"");
-        let mut xor = glue.clone();
-        for j in 0..xi_list.len() {
-            xor ^= yi_list[j as usize].clone();
-            c = encrypt(key.clone(), xor.to_str_radix(16));
-        }
+    let mut xor = glue.clone();
+    for j in 0..xi_list.len() {
+        xor ^= yi_list[j as usize].clone();
+        c = encrypt(key.clone(), xor.to_str_radix(16));
+    }
 
     if c == glue {
         return true;
     }
 
     return false;
-    
 }
