@@ -1,7 +1,7 @@
-# RSA RING SIGNATURES SCHEME
+# RSA RING SIGNATURES SCHEME(Ongoing)
 
 This repository contain an implementation of **RING SIGNATURES SCHEME** in Rust. The current implementation is based on the following paper:
-*[How to Leak a Secret] (https://www.iacr.org/archive/asiacrypt2001/22480554.pdf) by **Ronald L. Rivest, Adi Shamir, Yael Tauman Kalai**. This is the first paper which formalizes the notion of Ring Signatures.
+* [How to Leak a Secret](https://www.iacr.org/archive/asiacrypt2001/22480554.pdf) by **Ronald L. Rivest, Adi Shamir, Yael Tauman Kalai**. This is the first paper which formalizes the notion of Ring Signatures.
 
 Application layer protocol technology like CryptoNote uses Ring signatures.
 Cryptocurriencies like ShadowCash and Monero uses Ring Signatures.
@@ -13,10 +13,7 @@ It can be used as a way to leak a secret.
 Terminology:
 The set of possible signers is called a Ring. The member who produces the actual signature is called a signer and others are called non-signer.
 
-**Proposed Signature Scheme using RSA Trapdoor**
-
-**generate_keys:** 
-* Generates a sequence of public keys of all ring members and secret key of the signer.
+## Proposed Signature Scheme using RSA Trapdoor
 
 **sign:** 
 * Given the message m to be signed, a symmetric key k is chosen by  k = Hash(m)
@@ -32,3 +29,4 @@ Verifier will generate y_i = g(x_i) where g is trapdoor funtion.
 * Verifier will obtain the key k = Hash(m)
 * Verifier will verify the ring equation.
 * If ring equation is satisfied, verifier will accept. Otherwise, rejects.
+
