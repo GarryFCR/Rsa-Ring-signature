@@ -1283,14 +1283,22 @@ version = "0.1.0"
 dependencies = [
  "aes",
  "block-modes",
+ "block-padding 0.2.1",
  "byteorder",
  "hex",
  "hex-literal",
  "rand 0.8.4",
  "rsa",
+ "rust-utils",
  "sha2 0.9.8",
  "sp-core",
 ]
+
+[[package]]
+name = "rust-utils"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc459aa1f577f1fad6ef838f065b4e63df0e9d40db17dbaca206e806b730ee47"
 
 [[package]]
 name = "rustc-hash"

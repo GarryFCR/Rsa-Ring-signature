@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-byteorder = "1"
 rsa = "0.5.0"
 rand = "0.8.4"
 hex = "0.4.0"
@@ -15,3 +14,6 @@ aes = "0.7.5"
 block-modes = "0.8.1"
 hex-literal = "0.3.4"
 sp-core = "3.0.0"
+rust-utils = "0.2.3"
+block-padding = "0.2.1"
+byteorder = "1.2.7"

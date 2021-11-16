@@ -1,49 +1,39 @@
+extern crate block_modes;
 extern crate hex;
 extern crate rand;
 extern crate rsa;
+
 mod rsa_ring;
+mod symmetric;
 
 use rsa::{BigUint, RsaPublicKey};
 
 fn main() {
     //key generation
-    let list = rsa_ring::generate_keys(512, 5);
+    let list = rsa_ring::generate_keys(128, 5);
     //init
-    let e = list[0].clone(); //signer
+    let e = list[1].clone(); //signer
     let mut pub_list: Vec<RsaPublicKey> = vec![];
     for i in list.iter() {
         pub_list.push(RsaPublicKey::from(i));
     }
+    let test = pub_list.clone();
     let r = rsa_ring::Rsasign::init(pub_list, e);
 
     //sign
     let hello = String::from("Hello, world!");
-    let (xi_list, glue) = r.sign(hello);
+    let (xi_list, glue) = r.sign(hello.clone());
     println!("{:?}", xi_list);
     println!("{:?}", glue);
-
+    //verify
+    println!("{:?}", rsa_ring::verify(test, xi_list, glue, hello.clone()));
     /*
-        //g()
-        //let xy = BigUint::from_bytes_be(b"A");
-        //println!("\n{:?}", G);
-        let temp = list[0].clone();
-        //r.g();
-        println!("\n{:?}\n", temp);
-        let hello = String::from("Hello, world!");
-
-        //hash
-        rsa_ring::hash(hello);
-    */
-    /*
-    //encrypt
+    //symmetric
     let key = rsa_ring::hash(String::from("Helld"));
-    let text = String::from("Hello world");
-    let m = rsa_ring::encrypt(key.clone(), text);
+    let text = rsa_ring::hash(String::from("Hello"));
+    let enc = symmetric::encrypt(key.clone(), text.clone());
+    let dec = symmetric::decrypt(key.clone(), enc);
 
-    //decrypt
-    let de = rsa_ring::decrypt(key.clone(), m);
-
-    let byte = String::from("Hello world");
-
-    println!("{:?} {:?}", de, BigUint::from_bytes_be(&byte.into_bytes()));*/
+    println!("{:?}\n{:?}", text.to_bytes_be(), dec.to_bytes_be());
+    */
 }

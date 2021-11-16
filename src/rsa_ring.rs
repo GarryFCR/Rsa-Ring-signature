@@ -1,22 +1,14 @@
 extern crate aes;
-extern crate block_modes;
-extern crate hex;
-extern crate hex_literal;
 extern crate rand;
 extern crate rsa;
-extern crate sha2;
 extern crate sp_core;
 
-use sp_core::hashing::blake2_128;
-use std::vec;
-
-use aes::Aes128;
-use block_modes::block_padding::Pkcs7;
-use block_modes::{BlockMode, Cbc};
-use hex_literal::hex;
+#[path = "symmetric.rs"]
+mod symmetric;
 use rand::rngs::OsRng;
 use rsa::{BigUint, PublicKeyParts, RsaPrivateKey, RsaPublicKey};
-use sha2::{Digest, Sha256};
+use sp_core::hashing::blake2_128;
+use std::vec;
 pub struct Rsasign {
     set: Vec<RsaPublicKey>,
     signer: RsaPrivateKey,
@@ -50,6 +42,7 @@ impl Rsasign {
                 let y = g(x[0].clone(), i.clone());
                 yi_list.push(y);
             } else {
+                yi_list.push(BigUint::from(rand::random::<u64>()));
                 pos = index;
             }
             index += 1;
@@ -60,17 +53,17 @@ impl Rsasign {
         let mut xor = glue.clone();
         for j in 0..pos {
             xor ^= yi_list[j as usize].clone();
-            c = encrypt(key.clone(), xor.to_str_radix(16));
+            c = symmetric::encrypt(key.clone(), xor.clone());
         }
 
         let mut v = glue.clone();
-        for j in ((pos + 1)..index + 1).rev() {
-            v = decrypt(key.clone(), v);
-            v = v ^ yi_list[j as usize].clone();
+        for j in ((pos + 1)..index).rev() {
+            v = symmetric::decrypt(key.clone(), v);
+            v ^= yi_list[j as usize].clone();
         }
 
         //Solve C_k,v (y1,y2 , . . . , yr) = v for ys
-        let mut y_s = decrypt(key.clone(), v);
+        let mut y_s = symmetric::decrypt(key.clone(), v);
         y_s = y_s ^ c;
         //g^(-1)
         let pub_key = RsaPublicKey::from(self.signer.clone());
@@ -113,11 +106,6 @@ pub fn generate_keys(bit: usize, no: u8) -> Vec<RsaPrivateKey> {
 }
 
 pub fn hash(m: String) -> BigUint {
-    /* let mut hasher = Sha256::new();
-    hasher.update(m);
-    let result = hasher.finalize();
-
-    let num = BigUint::from_radix_be(&result, 256).unwrap();*/
     let num = blake2_128(&m.into_bytes());
     return BigUint::from_bytes_be(&num);
 }
@@ -131,43 +119,6 @@ pub fn generate_rand(n: u8) -> Vec<BigUint> {
         i += 1;
     }
     return list;
-}
-
-pub fn encrypt(key: BigUint, m: String) -> BigUint {
-    type Aes128Cbc = Cbc<Aes128, Pkcs7>;
-    let key_new = key.to_bytes_be();
-    //let temp = key.to_bytes_be();
-    let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    //println!("{:?}\n{:?}", temp.len(), iv.len());
-    let cipher = Aes128Cbc::new_from_slices(&key_new, &iv).unwrap();
-
-    // buffer must have enough space for message+padding
-    let mut buffer = [0u8; 32];
-    // copy message to the buffer
-    let pos = m.len();
-    buffer[..pos].copy_from_slice(&m.into_bytes());
-
-    let ciphertext = cipher.encrypt(&mut buffer, pos).unwrap();
-    let cipher = BigUint::from_radix_be(ciphertext, 256).unwrap();
-
-    println!("cipher:{:?}", cipher);
-    return cipher;
-}
-
-pub fn decrypt(key: BigUint, m: BigUint) -> BigUint {
-    type Aes128Cbc = Cbc<Aes128, Pkcs7>;
-    let key_new = key.to_bytes_be();
-
-    let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    let cipher = Aes128Cbc::new_from_slices(&key_new, &iv).unwrap();
-
-    let mut buf = m.to_bytes_be();
-    println!("{:?}\n{:?}", key, m);
-
-    let decrypted_ciphertext = cipher.decrypt(&mut buf).unwrap();
-    let num = BigUint::from_radix_be(decrypted_ciphertext, 256).unwrap();
-    println!("Decipher{:?}", num);
-    return num;
 }
 
 pub fn verify(
@@ -185,7 +136,7 @@ pub fn verify(
     let mut xor = glue.clone();
     for j in 0..xi_list.len() {
         xor ^= yi_list[j as usize].clone();
-        c = encrypt(key.clone(), xor.to_str_radix(16));
+        c = symmetric::encrypt(key.clone(), xor.clone());
     }
 
     if c == glue {
