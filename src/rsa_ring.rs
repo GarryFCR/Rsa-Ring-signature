@@ -42,40 +42,38 @@ impl Rsasign {
                 let y = g(x[0].clone(), i.clone());
                 yi_list.push(y);
             } else {
-                yi_list.push(BigUint::from(rand::random::<u64>()));
+                yi_list.push(BigUint::from(0 * (rand::random::<u64>())));
+                xi_list.push(BigUint::from(0 * (rand::random::<u64>())));
                 pos = index;
             }
             index += 1;
         }
 
         //Solve C_k,v (y1,y2 , . . . , yr)
-        let mut c = BigUint::from_bytes_be(b"");
-        let mut xor = glue.clone();
+        let mut enc = glue.clone();
         for j in 0..pos {
-            xor ^= yi_list[j as usize].clone();
-            c = symmetric::encrypt(key.clone(), xor.clone());
+            let c = enc ^ yi_list[j as usize].clone();
+            enc = symmetric::encrypt(key.clone(), c.clone());
         }
 
         let mut v = glue.clone();
         for j in ((pos + 1)..index).rev() {
-            v = symmetric::decrypt(key.clone(), v);
-            v ^= yi_list[j as usize].clone();
+            let dec = symmetric::decrypt(key.clone(), v);
+            v = dec ^ yi_list[j as usize].clone();
         }
 
         //Solve C_k,v (y1,y2 , . . . , yr) = v for ys
         let mut y_s = symmetric::decrypt(key.clone(), v);
-        y_s = y_s ^ c;
+        y_s = y_s ^ enc;
         //g^(-1)
         let pub_key = RsaPublicKey::from(self.signer.clone());
         let d = self.signer.d();
         let n = pub_key.n();
         let f_r = y_s.clone() % n;
         let q = y_s.clone() / n;
-        let r = f_r;
-        r.modpow(d, n);
+        let r = f_r.modpow(d, n);
 
-        let x_s = q * n + r;
-        println!("{:?}", x_s.to_bytes_be().len());
+        let x_s = q * n + r.clone();
         xi_list[pos as usize] = x_s;
         return (xi_list, glue);
     }
@@ -135,15 +133,13 @@ pub fn verify(
     }
     let key = hash(m);
 
-    let mut c = BigUint::from_bytes_be(b"");
-    let mut xor = glue.clone();
+    let mut enc = glue.clone();
     for j in 0..xi_list.len() {
-        xor ^= yi_list[j as usize].clone();
-        c = symmetric::encrypt(key.clone(), xor.clone());
+        let c = enc ^ yi_list[j as usize].clone();
+        enc = symmetric::encrypt(key.clone(), c.clone());
     }
-    println!("{:?}", c);
 
-    if c == glue {
+    if enc == glue {
         return true;
     }
 

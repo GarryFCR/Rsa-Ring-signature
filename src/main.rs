@@ -6,7 +6,7 @@ extern crate rsa;
 mod rsa_ring;
 mod symmetric;
 
-use rsa::{BigUint, RsaPublicKey};
+use rsa::RsaPublicKey;
 
 fn main() {
     //key generation
