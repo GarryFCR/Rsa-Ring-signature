@@ -69,12 +69,13 @@ impl Rsasign {
         let pub_key = RsaPublicKey::from(self.signer.clone());
         let d = self.signer.d();
         let n = pub_key.n();
-        // let f_r = y_s.clone()%n;
+        let f_r = y_s.clone() % n;
         let q = y_s.clone() / n;
-        let r = y_s;
+        let r = f_r;
         r.modpow(d, n);
 
         let x_s = q * n + r;
+        println!("{:?}", x_s.to_bytes_be().len());
         xi_list[pos as usize] = x_s;
         return (xi_list, glue);
     }
@@ -115,7 +116,8 @@ pub fn generate_rand(n: u8) -> Vec<BigUint> {
     let mut i: u8 = 0;
     while i < n {
         let temp = rand::random::<u128>();
-        list.push(BigUint::from(temp));
+        let rand_x = temp >> 1; //so that x is less than 128bits and y is atmost 16 bytes
+        list.push(BigUint::from(rand_x));
         i += 1;
     }
     return list;
@@ -132,12 +134,14 @@ pub fn verify(
         yi_list.push(g(xi_list[i].clone(), pub_key_list[i].clone()));
     }
     let key = hash(m);
+
     let mut c = BigUint::from_bytes_be(b"");
     let mut xor = glue.clone();
     for j in 0..xi_list.len() {
         xor ^= yi_list[j as usize].clone();
         c = symmetric::encrypt(key.clone(), xor.clone());
     }
+    println!("{:?}", c);
 
     if c == glue {
         return true;

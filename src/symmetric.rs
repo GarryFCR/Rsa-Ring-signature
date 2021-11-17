@@ -6,7 +6,7 @@ use rsa::BigUint;
 pub fn encrypt(key: BigUint, m: BigUint) -> BigUint {
     let slices = key.to_bytes_be();
     let text = m.to_bytes_be();
-    println!("{:?} {:?}", slices.len(), text.len());
+    println!("Enc:{:?} {:?}", slices.len(), text.len());
     let key = GenericArray::from_slice(&slices);
     let block = Block::from_slice(&text);
 
