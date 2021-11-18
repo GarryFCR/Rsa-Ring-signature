@@ -1,5 +1,3 @@
-extern crate block_modes;
-extern crate hex;
 extern crate rand;
 extern crate rsa;
 
@@ -12,7 +10,7 @@ fn main() {
     //key generation
     let list = rsa_ring::generate_keys(128, 5);
     //init
-    let e = list[1].clone(); //signer
+    let e = list[2].clone(); //signer
     let mut pub_list: Vec<RsaPublicKey> = vec![];
     for i in list.iter() {
         pub_list.push(RsaPublicKey::from(i));

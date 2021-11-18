@@ -29,7 +29,6 @@ impl Rsasign {
         //Pick a random glue value
         let temp = BigUint::from(rand::random::<u128>()).to_str_radix(16);
         let glue = hash(temp);
-
         //Pick random xi ’s and calculate yi's
         let mut xi_list: Vec<BigUint> = vec![];
         let mut yi_list: Vec<BigUint> = vec![];
@@ -37,17 +36,18 @@ impl Rsasign {
         let mut pos: u8 = 0;
         for i in self.set.iter() {
             if *i != RsaPublicKey::from(self.signer.clone()) {
-                let x = generate_rand(1);
-                xi_list.push(x[0].clone());
-                let y = g(x[0].clone(), i.clone());
+                let x = generate_rand();
+                xi_list.push(x.clone());
+                let y = g(x.clone(), i.clone());
                 yi_list.push(y);
             } else {
-                yi_list.push(BigUint::from(0 * (rand::random::<u64>())));
-                xi_list.push(BigUint::from(0 * (rand::random::<u64>())));
+                yi_list.push(BigUint::from_bytes_be(b""));
+                xi_list.push(BigUint::from_bytes_be(b""));
                 pos = index;
             }
             index += 1;
         }
+        println!("{:?}", yi_list);
 
         //Solve C_k,v (y1,y2 , . . . , yr)
         let mut enc = glue.clone();
@@ -109,16 +109,10 @@ pub fn hash(m: String) -> BigUint {
     return BigUint::from_bytes_be(&num);
 }
 
-pub fn generate_rand(n: u8) -> Vec<BigUint> {
-    let mut list: Vec<BigUint> = vec![];
-    let mut i: u8 = 0;
-    while i < n {
-        let temp = rand::random::<u128>();
-        let rand_x = temp >> 1; //so that x is less than 128bits and y is atmost 16 bytes
-        list.push(BigUint::from(rand_x));
-        i += 1;
-    }
-    return list;
+pub fn generate_rand() -> BigUint {
+    let temp = rand::random::<u128>();
+    let rand_x = temp >> 1; //so that x is less than 128bits and y is atmost 16 bytes
+    return BigUint::from(rand_x);
 }
 
 pub fn verify(
