@@ -3,6 +3,7 @@ use aes::{Aes128, Block};
 use byteorder::{BigEndian, ReadBytesExt};
 use rsa::BigUint;
 
+#[allow(dead_code)]
 pub fn encrypt(key: BigUint, m: BigUint) -> BigUint {
     let slices = key.to_bytes_be();
     let text = m.to_bytes_be();
@@ -21,6 +22,7 @@ pub fn encrypt(key: BigUint, m: BigUint) -> BigUint {
     return BigUint::from(num);
 }
 
+#[allow(dead_code)]
 pub fn decrypt(key: BigUint, m: BigUint) -> BigUint {
     let slices = key.to_bytes_be();
     let text = m.to_bytes_be();

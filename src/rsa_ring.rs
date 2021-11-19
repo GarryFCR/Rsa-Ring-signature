@@ -5,7 +5,6 @@ extern crate sp_core;
 
 #[path = "symmetric.rs"]
 mod symmetric;
-use rand::rngs::OsRng;
 use rsa::{BigUint, PublicKeyParts, RsaPrivateKey, RsaPublicKey};
 use sp_core::hashing::blake2_128;
 use std::vec;
@@ -47,7 +46,6 @@ impl Rsasign {
             }
             index += 1;
         }
-        println!("{:?}", yi_list);
 
         //Solve C_k,v (y1,y2 , . . . , yr)
         let mut enc = glue.clone();
@@ -89,19 +87,6 @@ fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
     let fr = r.modpow(e, n);
     let gx = q * n + fr;
     return gx;
-}
-//Generates a list of rsa key pairs
-pub fn generate_keys(bit: usize, no: u8) -> Vec<RsaPrivateKey> {
-    let mut priv_list: Vec<RsaPrivateKey> = vec![];
-
-    let mut rng = OsRng;
-    let mut i: u8 = 0;
-    while i < no {
-        priv_list.push(RsaPrivateKey::new(&mut rng, bit).expect("failed to generate a key"));
-        i += 1;
-    }
-
-    return priv_list;
 }
 
 pub fn hash(m: String) -> BigUint {
