@@ -32,6 +32,8 @@ fn main() {
         "Verification : {:?}",
         rsa_ring::verify(test, xi_list, glue, hello.clone())
     );
+
+    println!("{:?}", rsa_ring::hash256(String::from("Hello")));
     /*
     //symmetric
     let key = rsa_ring::hash(String::from("Helld"));

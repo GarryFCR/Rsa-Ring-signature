@@ -1263,6 +1263,7 @@ dependencies = [
  "byteorder",
  "rand 0.8.4",
  "rsa",
+ "sha2 0.9.8",
  "sp-core",
 ]
 
