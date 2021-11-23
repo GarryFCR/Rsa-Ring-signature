@@ -3,46 +3,45 @@ extern crate rsa;
 
 mod rsa_ring;
 mod symmetric;
-use rand::rngs::OsRng;
-use rsa::{RsaPrivateKey, RsaPublicKey};
+use rand::{rngs::OsRng, RngCore};
+use rsa::{BigUint, RsaPrivateKey, RsaPublicKey};
 
 fn main() {
-    //key generation
-    println!("\nGenerating 5 random rsa key pairs...");
-    let list = generate_keys(128, 5);
-    //init
-    println!("\nInitialising Rsasign struct...");
-    let e = list[2].clone(); //signer
-    let mut pub_list: Vec<RsaPublicKey> = vec![];
-    for i in list.iter() {
-        pub_list.push(RsaPublicKey::from(i));
-    }
-    let test = pub_list.clone();
-    let r = rsa_ring::Rsasign::init(pub_list, e);
+    /* //key generation
+        println!("\nGenerating 5 random rsa key pairs...");
+        let list = generate_keys(128, 5);
+        //init
+        println!("\nInitialising Rsasign struct...");
+        let e = list[2].clone(); //signer
+        let mut pub_list: Vec<RsaPublicKey> = vec![];
+        for i in list.iter() {
+            pub_list.push(RsaPublicKey::from(i));
+        }
+        let test = pub_list.clone();
+        let r = rsa_ring::Rsasign::init(pub_list, e);
 
-    //sign
-    println!("\nSigning the message (\"Hello, world!\").");
-    let hello = String::from("Hello, world!");
-    let (xi_list, glue) = r.sign(hello.clone());
-    println!("\nGenerated x_i's :\n{:?}\n", xi_list);
-    println!("Generated random glue : {:?}\n", glue);
+        //sign
+        println!("\nSigning the message (\"Hello, world!\").");
+        let hello = String::from("Hello, world!");
+        let (xi_list, glue) = r.sign(hello.clone());
+        println!("\nGenerated x_i's :\n{:?}\n", xi_list);
+        println!("Generated random glue : {:?}\n", glue);
 
-    //verify
-    println!(
-        "Verification : {:?}",
-        rsa_ring::verify(test, xi_list, glue, hello.clone())
-    );
-
-    println!("{:?}", rsa_ring::hash256(String::from("Hello")));
-    /*
+        //verify
+        println!(
+            "Verification : {:?}",
+            rsa_ring::verify(test, xi_list, glue, hello.clone())
+        );
+    */
     //symmetric
     let key = rsa_ring::hash(String::from("Helld"));
-    let text = rsa_ring::hash(String::from("Hello"));
-    let enc = symmetric::encrypt(key.clone(), text.clone());
-    let dec = symmetric::decrypt(key.clone(), enc);
+    let mut temp = [0u8; 256];
+    OsRng.fill_bytes(&mut temp);
+    let m = BigUint::from_bytes_be(&temp);
+    let enc = symmetric::encrypt256bytes(key.clone(), m.clone());
 
-    println!("{:?}\n{:?}", text.to_bytes_be(), dec.to_bytes_be());
-    */
+    let dec = symmetric::decrypt256bytes(key, enc);
+    assert_eq!(m, dec);
 }
 //Generates a list of rsa key pairs
 pub fn generate_keys(bit: usize, no: u8) -> Vec<RsaPrivateKey> {

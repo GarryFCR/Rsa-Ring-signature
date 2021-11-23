@@ -147,7 +147,7 @@ fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
     return gx;
 }
 
-fn hash(m: String) -> BigUint {
+pub fn hash(m: String) -> BigUint {
     let num = blake2_128(&m.into_bytes());
     return BigUint::from_bytes_be(&num);
 }
