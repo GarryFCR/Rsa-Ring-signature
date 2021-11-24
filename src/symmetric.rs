@@ -1,9 +1,10 @@
 use aes::cipher::generic_array::GenericArray;
 use aes::cipher::{BlockDecrypt, BlockEncrypt, NewBlockCipher};
 use aes::{Aes128, Block};
-use byteorder::{BigEndian, ReadBytesExt};
+//use byteorder::{BigEndian, ReadBytesExt};
 use rsa::BigUint;
 
+/*
 #[allow(dead_code)]
 pub fn encrypt(key: BigUint, m: BigUint) -> BigUint {
     let slices = key.to_bytes_be();
@@ -42,6 +43,7 @@ pub fn decrypt(key: BigUint, m: BigUint) -> BigUint {
     let num = x.read_u128::<BigEndian>().unwrap();
     return BigUint::from(num);
 }
+*/
 
 #[allow(dead_code)]
 pub fn encrypt256bytes(key: BigUint, m: BigUint) -> BigUint {
