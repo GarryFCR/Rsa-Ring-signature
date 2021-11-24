@@ -51,7 +51,7 @@ pub fn encrypt256bytes(key: BigUint, m: BigUint) -> BigUint {
     let text = m.to_bytes_be();
     let no_of_blocks = text.len() / 16;
     assert_eq!(slices.len(), 16);
-    assert_eq!(text.len(), 256);
+    //assert_eq!(text.len(), 256);
     let key = GenericArray::from_slice(&slices);
 
     let mut cipher_array: Vec<u8> = vec![];
@@ -80,7 +80,7 @@ pub fn decrypt256bytes(key: BigUint, m: BigUint) -> BigUint {
     let text = m.to_bytes_be();
     let no_of_blocks = text.len() / 16;
     assert_eq!(slices.len(), 16);
-    assert_eq!(text.len(), 256);
+    //assert_eq!(text.len(), 256);
 
     let key = GenericArray::from_slice(&slices);
 
