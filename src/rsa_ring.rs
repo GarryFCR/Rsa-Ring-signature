@@ -37,7 +37,7 @@ impl Rsasign {
         let mut pos: u8 = 0;
         for i in self.set.iter() {
             if *i != RsaPublicKey::from(self.signer.clone()) {
-                let x = generate_rand();
+                let x = generate_rand256bytes();
                 xi_list.push(x.clone());
                 let y = g(x.clone(), i.clone());
                 yi_list.push(y);
@@ -91,11 +91,11 @@ fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
 }
 
 //generate a random 128 bit
-pub fn generate_rand() -> BigUint {
+/*pub fn generate_rand() -> BigUint {
     let temp = rand::random::<u128>();
     let rand_x = temp >> 1; //so that x is less than 128bits and y is atmost 16 bytes
     return BigUint::from(rand_x);
-}
+}*/
 
 //verify the ring signature
 pub fn verify(
@@ -115,7 +115,6 @@ pub fn verify(
         let c = enc ^ yi_list[j as usize].clone();
         enc = symmetric::encrypt(key.clone(), c.clone());
     }
-
     if enc == glue {
         return true;
     }

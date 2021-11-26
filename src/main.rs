@@ -23,8 +23,8 @@ fn main() {
     println!("\nSigning the message (\"Hello, world!\").");
     let hello = String::from("Hello, world!");
     let (xi_list, glue) = r.sign(hello.clone());
-    println!("\nGenerated x_i's :\n{:?}\n", xi_list);
-    println!("Generated random glue : {:?}\n", glue);
+    //println!("\nGenerated x_i's :\n{:?}\n", xi_list);
+    //println!("Generated random glue : {:?}\n", glue);
     //verify
     println!(
         "Verification : {:?}",
