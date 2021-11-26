@@ -90,13 +90,6 @@ fn g(x: BigUint, pub_key: RsaPublicKey) -> BigUint {
     return gx;
 }
 
-//generate a random 128 bit
-/*pub fn generate_rand() -> BigUint {
-    let temp = rand::random::<u128>();
-    let rand_x = temp >> 1; //so that x is less than 128bits and y is atmost 16 bytes
-    return BigUint::from(rand_x);
-}*/
-
 //verify the ring signature
 pub fn verify(
     pub_key_list: Vec<RsaPublicKey>,
@@ -140,5 +133,5 @@ pub fn generate_rand256bytes() -> BigUint {
     let mut key = [0u8; 256];
     OsRng.fill_bytes(&mut key);
     let rand_num = BigUint::from_bytes_be(&key);
-    return rand_num;
+    return rand_num >> 1;
 }

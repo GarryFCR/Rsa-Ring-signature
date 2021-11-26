@@ -8,7 +8,7 @@ use rsa::{RsaPrivateKey, RsaPublicKey};
 
 fn main() {
     //key generation
-    println!("\nGenerating 5 random rsa key pairs...");
+    println!("\nGenerating 5 2048 bit random rsa key pairs...");
     let list = generate_keys(2048, 5);
     //init
     println!("\nInitialising Rsasign struct...");
@@ -27,7 +27,7 @@ fn main() {
     //println!("Generated random glue : {:?}\n", glue);
     //verify
     println!(
-        "Verification : {:?}",
+        "\nVerification : {:?}",
         rsa_ring::verify(test, xi_list, glue, hello.clone())
     );
     /*
