@@ -11,6 +11,8 @@ use rsa::{BigUint, PublicKeyParts, RsaPrivateKey, RsaPublicKey};
 use sha2::{Digest, Sha256};
 use sp_core::hashing::blake2_128;
 use std::vec;
+
+//We are assumming 2048 bit key pairs for security
 pub struct Rsasign {
     set: Vec<RsaPublicKey>,
     signer: RsaPrivateKey,
