@@ -16,7 +16,7 @@ The set of possible signers is called a Ring. The member who produces the actual
 ## Proposed Signature Scheme using RSA Trapdoor
 
 **Sign:** 
-* Given the message m to be signed, a symmetric key k is chosen by  k = Hash(m)
+* Given the message m to be signed, a symmetric key k is chosen by  k = Hash(m) . First we hash using SHA256 and then blake2 to get a 128 hash such that forging is not computationally possible.
 * Random glue value v is chosen uniformly at random from {0,1}^b where all public key n_i are less that 2^b
 * Signer picks random x_i for all other ring member except for him and calculate y_i = g(x_i) where g is a trapdoor permutation.
 * The signer solves the ring equation, C_k_v(y_1, y_2, ..., y_r) = v where C_k_v is a Symmetric Key Encryption to get y_s
